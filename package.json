@@ -12,7 +12,7 @@
     "dev": "pnpm --filter @deepwrite/desktop dev",
     "electron:ensure": "node tools/ensure-electron-runtime.mjs",
     "build": "pnpm --filter @deepwrite/desktop build",
-    "typecheck": "vue-tsc --noEmit -p apps/desktop/tsconfig.web.json && tsc --noEmit -p apps/desktop/tsconfig.node.json && tsc --noEmit -p packages/contracts/tsconfig.json && tsc --noEmit -p packages/shared/tsconfig.json && tsc --noEmit -p packages/pi-runtime-adapter/tsconfig.json",
+    "typecheck": "vue-tsc --noEmit -p apps/desktop/tsconfig.web.json && tsc --noEmit -p apps/desktop/tsconfig.node.json && tsc --noEmit -p packages/contracts/tsconfig.json && tsc --noEmit -p packages/shared/tsconfig.json && tsc --noEmit -p packages/pi-runtime-adapter/tsconfig.json && tsc --noEmit -p packages/deepwrite-cli/tsconfig.json",
     "lint": "pnpm lint:eslint && pnpm lint:boundary && pnpm lint:i18n",
     "lint:eslint": "eslint . --max-warnings=0",
     "lint:fix": "eslint . --fix",
