@@ -14,12 +14,12 @@ asar: true
 beforeBuild: ./scripts/electron-builder-before-build.cjs
 
 extraMetadata:
-  homepage: https://github.com/swjybky/deepwrite
+  homepage: https://github.com/zhousiyi520/deepwrite
   desktopName: DeepWrite
 
 publish:
   provider: generic
-  url: https://github.com/swjybky/deepwrite/releases/latest/download
+  url: https://github.com/zhousiyi520/deepwrite/releases/latest/download
   channel: latest
 
 mac:

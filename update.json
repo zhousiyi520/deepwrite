@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "enabled": true,
+  "enabled": false,
   "channel": "stable",
   "version": "1.6.3",
   "title": "DeepWrite 1.6.3",
@@ -19,6 +19,6 @@
   ],
   "mandatory": false,
   "minimumSupportedVersion": "1.0.0",
-  "releasePage": "https://github.com/swjybky/deepwrite/releases/tag/v1.6.3",
-  "feedUrl": "https://github.com/swjybky/deepwrite/releases/latest/download"
+  "releasePage": "https://github.com/zhousiyi520/deepwrite/releases",
+  "feedUrl": "https://github.com/zhousiyi520/deepwrite/releases/latest/download"
 }

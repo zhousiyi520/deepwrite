@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const UPDATE_MANIFEST_URL =
-  "https://raw.githubusercontent.com/swjybky/deepwrite/main/update.json";
+  "https://raw.githubusercontent.com/zhousiyi520/deepwrite/main/update.json";
 
 export const UPDATE_GET_STATE_CHANNEL = "deepwrite:update:get-state";
 export const UPDATE_CHECK_CHANNEL = "deepwrite:update:check";
