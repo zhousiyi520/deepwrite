@@ -1,6 +1,7 @@
 import { parseCliArgs } from "./args";
 import { runBooksCommand } from "./commands/books";
 import { runModelsCommand } from "./commands/models";
+import { runSmokeCommand } from "./commands/smoke";
 import { runVersionCommand } from "./commands/version";
 import { CliError } from "./cli-error";
 import { resolveUserDataDir } from "./user-data";
@@ -17,8 +18,7 @@ async function dispatch(): Promise<number> {
       runVersionCommand();
       return 0;
     case "smoke":
-      console.error("smoke 命令尚未实现。");
-      return 1;
+      return runSmokeCommand();
     case "models":
       await runModelsCommand(
         resolveUserDataDir(args.userData, process.env.APPDATA)
