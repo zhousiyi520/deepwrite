@@ -29,6 +29,7 @@ import {
 } from "../../main/usage-observation";
 import type { ChatRuntimeSources } from "./chat/runtime-snapshot";
 import type { ExtrasAgentConfigStore } from "./config-store";
+import { resolveExtrasRunModelId } from "./local-model-override";
 import type { ExtrasTaskResolution } from "./task-resolver";
 import { resolveExtrasTask } from "./task-resolver";
 import { decompositionModelCapacity } from "./long-book-decomposition/model-capacity";
@@ -170,7 +171,9 @@ export async function runExtrasAgent(
   let keepOwnership = false;
   let startFailureCode: string | undefined;
   try {
-    const runtimeConfig = await deps.resolveModel(command.payload.modelId);
+    const runtimeConfig = await deps.resolveModel(
+      resolveExtrasRunModelId(task.agentId, command.payload.modelId)
+    );
     assertWebSearchSupported(task, runtimeConfig);
     resolution =
       task.agentId === "long-book-decomposition" && deps.resolveDecomposition
