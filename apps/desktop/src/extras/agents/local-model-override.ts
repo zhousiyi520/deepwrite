@@ -13,6 +13,12 @@
  *
  * long-book-decomposition 有意不在映射内：其运行模型必须与任务快照一致，
  * 运行期覆盖会破坏该不变量；chat 类智能体同样不覆盖。
+ *
+ * 打包冒烟（DEEPWRITE_SMOKE === "1"）整体跳过该映射，原样返回界面所选
+ * 模型：冒烟工作区是全新 profile，不含本机模型条目，固化映射只会把四类
+ * 任务推向不存在的 id 而必挂。旁路仅由该环境变量触发，判定严格等于 "1"，
+ * 无变量时生产 fail-closed 行为一分不变；与 smoke-decomposition-model、
+ * smoke-book-identity-model 的冒烟旁路同型。
  */
 export const EXTRAS_LOCAL_MODEL_OVERRIDES: Partial<Record<string, string>> = {
   "long-book-analysis": "model_74478acd",
@@ -26,5 +32,8 @@ export function resolveExtrasRunModelId(
   agentId: string,
   requestedModelId: string | undefined
 ): string | undefined {
+  if (process.env.DEEPWRITE_SMOKE === "1") {
+    return requestedModelId;
+  }
   return EXTRAS_LOCAL_MODEL_OVERRIDES[agentId] ?? requestedModelId;
 }
