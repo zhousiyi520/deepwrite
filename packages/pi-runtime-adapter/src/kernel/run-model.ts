@@ -15,6 +15,7 @@ import {
 import type { AgentRuntimeRef } from "@deepwrite/contracts";
 import {
   buildWorkspaceProviderRuntimes,
+  resolveRunSamplingValues,
   toPiThinkingLevel
 } from "../provider-runtime";
 import type { AgentRunPlan, AgentRunTarget } from "./run-plan";
@@ -34,12 +35,12 @@ export function resolveRunModel(
 ): RunModel {
   const { target } = plan;
   if (target.runtimeConfig) {
-    const configuredThinkingLevel =
-      target.thinkingLevel ?? target.runtimeConfig.defaultThinkingLevel;
-    const effectiveTemperature =
-      configuredThinkingLevel === "off"
-        ? (target.temperature ?? target.runtimeConfig.temperatureOptions[1])
-        : undefined;
+    const { configuredThinkingLevel, effectiveTemperature } =
+      resolveRunSamplingValues(
+        target.runtimeConfig,
+        target.thinkingLevel,
+        target.temperature
+      );
     const providerRuntime = buildWorkspaceProviderRuntimes(
       target.runtimeConfig,
       effectiveTemperature,

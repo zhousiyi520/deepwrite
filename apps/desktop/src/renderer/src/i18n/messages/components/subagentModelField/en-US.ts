@@ -10,5 +10,7 @@ export default {
   selectTemperature: "Select temperature",
   selectATemperature: "Select a temperature",
   noModelsAvailableAddOneInModelSettingsFirst:
-    "No models available. Add one in Model settings first."
+    "No models available. Add one in Model settings first.",
+  samplerOverrideNote:
+    "Empty items keep the selected model's current sampling values; overrides are sent for this subagent only. 0 and -1 are valid values."
 };

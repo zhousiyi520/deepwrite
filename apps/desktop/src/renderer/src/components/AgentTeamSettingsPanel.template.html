@@ -157,10 +157,12 @@
           :model-options="modelOptions"
           :thinking-options="thinkingOptionsFor(subagent)"
           :temperature-options="temperatureOptionsFor(subagent)"
+          :model-sampler="modelSamplerFor(subagent)"
           @set-model-mode="setSubagentModelMode(subagent, $event)"
           @set-model-id="setSubagentModelId(subagent, $event)"
           @set-thinking-level="setSubagentThinkingLevel(subagent, $event)"
           @set-temperature="setSubagentTemperature(subagent, $event)"
+          @set-sampler="setSubagentSampler(subagent, $event)"
           @done="finishEditing"
         />
       </AgentTeamSubagentCard>

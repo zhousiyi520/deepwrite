@@ -111,6 +111,7 @@ export function toModelInput(model: DraftModel): ModelConfigInput {
       ? { contextWindow: model.contextWindow }
       : {}),
     ...(model.maxTokens !== undefined ? { maxTokens: model.maxTokens } : {}),
+    ...(model.sampler ? { sampler: { ...model.sampler } } : {}),
     ...(model.apiKey?.trim() ? { apiKey: model.apiKey.trim() } : {}),
     ...(model.clearApiKey ? { clearApiKey: true } : {}),
     ...(model.sourceApiKeyId ? { sourceApiKeyId: model.sourceApiKeyId } : {})

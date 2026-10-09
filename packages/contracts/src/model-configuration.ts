@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { SamplerSettingsSchema } from "./sampling";
+
+export * from "./sampling";
 
 export const BUILT_IN_REASONING_LEVELS = [
   "minimal",
@@ -156,6 +159,8 @@ const ModelIdentitySchema = z
     contextWindow: ModelContextWindowSchema.optional(),
     /** Optional custom max output tokens. Must be set together with contextWindow. */
     maxTokens: ModelMaxTokensSchema.optional(),
+    /** Optional sampler overrides (DRY / XTC / min-p) for compatible endpoints. */
+    sampler: SamplerSettingsSchema.optional(),
     /** User visibility toggle for separately managed model catalogs. */
     enabled: z.boolean().optional(),
     managedBy: ModelManagedBySchema.optional(),

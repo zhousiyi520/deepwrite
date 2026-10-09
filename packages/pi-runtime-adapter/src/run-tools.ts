@@ -21,6 +21,7 @@ import {
 } from "./short-agent-tools";
 import { buildSubagentAuthoringTools } from "./subagent-authoring-tools";
 import { buildSubagentMaterialContext } from "./prompts-material";
+import { buildParentSamplerRuntimeSpec } from "./subagent-model";
 import { buildSpawnSubagentTool } from "./subagent-runtime";
 import { workspaceContextPolicy } from "./workspace-context-policy";
 import { buildProviderRuntime, toPiThinkingLevel } from "./provider-runtime";
@@ -172,6 +173,10 @@ export function buildRunTools(
       toolCompactors: parentPolicy.toolCompactors,
       ...(parentPolicy.rehydrate ? { rehydrate: parentPolicy.rehydrate } : {})
     };
+    const parentSamplerRuntime = buildParentSamplerRuntimeSpec(
+      input,
+      portableToolSchemaProfile
+    );
     const spawnTool = buildSpawnSubagentTool({
       parentSessionId: input.sessionId,
       ...((options.parentSignal ?? input.signal)
@@ -181,6 +186,7 @@ export function buildRunTools(
       model,
       thinkingLevel: effectiveThinkingLevel,
       streamFn: spawnStreamFn,
+      ...(parentSamplerRuntime ? { parentSamplerRuntime } : {}),
       requestUserInput,
       definitions: [
         ...(input.subagentDefinitions ?? []),

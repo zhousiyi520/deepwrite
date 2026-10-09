@@ -137,4 +137,17 @@ describe("agentTeamDraftSignature", () => {
       sign({ ...custom, thinkingLevel: "off", temperature: 0.7 })
     );
   });
+
+  it("changes on a sampler-only edit under both model modes", () => {
+    const sampler = { dryMultiplier: 0.8 };
+    expect(sign({ ...subagent, sampler })).not.toBe(sign(subagent));
+    const custom: ShortAgentSubagentDefinition = {
+      ...subagent,
+      modelMode: "custom",
+      modelId: "model-a"
+    };
+    expect(sign({ ...custom, sampler })).not.toBe(sign(custom));
+    // An absent override stays identical to the baseline draft.
+    expect(sign({ ...subagent, sampler: undefined })).toBe(sign(subagent));
+  });
 });

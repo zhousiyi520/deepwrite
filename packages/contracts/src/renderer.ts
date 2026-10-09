@@ -325,7 +325,11 @@ export {
   MODEL_CONTEXT_WINDOW_MIN,
   MODEL_MAX_TOKENS_MAX,
   MODEL_MAX_TOKENS_MIN,
-  isDeepSeekWebSearchCompatible
+  SAMPLER_FIELD_BOUNDS,
+  SAMPLER_FIELD_ORDER,
+  SamplerSettingsSchema,
+  isDeepSeekWebSearchCompatible,
+  resolveEffectiveSamplerSettings
 } from "./models";
 export {
   DEFAULT_SCRIPT_AGENT_WELCOME_SHORTCUTS,

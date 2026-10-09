@@ -8,10 +8,13 @@ import {
   MODEL_CONTEXT_WINDOW_MAX,
   MODEL_CONTEXT_WINDOW_MIN,
   MODEL_MAX_TOKENS_MAX,
-  MODEL_MAX_TOKENS_MIN
+  MODEL_MAX_TOKENS_MIN,
+  type SamplerSettings
 } from "@deepwrite/contracts/renderer";
 import { uiMessage } from "../ui-feedback";
 import { toModelInput, type DraftModel } from "./modelSettingsDraft";
+import type { ModelSamplerFieldsInstance } from "./modelSamplerFields";
+import ModelSamplerFields from "./ModelSamplerFields.vue";
 
 const t = createScopedTranslator("components.modelAdvancedConfigDialog");
 
@@ -22,12 +25,19 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: [];
-  save: [capacity: { contextWindow: number; maxTokens: number }];
+  save: [
+    capacity: {
+      contextWindow: number;
+      maxTokens: number;
+      sampler: SamplerSettings | undefined;
+    }
+  ];
 }>();
 
 const firstInput = ref<HTMLInputElement | null>(null);
 const contextWindowText = ref("");
 const maxTokensText = ref("");
+const samplerFields = ref<ModelSamplerFieldsInstance | null>(null);
 const resolving = ref(false);
 let resolveSequence = 0;
 
@@ -113,6 +123,15 @@ function parseTokenCount(raw: string): number | null {
   return Number.isInteger(value) ? value : null;
 }
 
+/** Valid sampler payload, undefined when unset, null when a toast blocked save. */
+function collectSampler(): SamplerSettings | undefined | null {
+  const { model } = props;
+  if (!model || model.api !== "openai-completions") return undefined;
+  const result = samplerFields.value?.collectSampler();
+  if (!result) return undefined;
+  return result.ok ? result.sampler : null;
+}
+
 function save(): void {
   if (props.busy || resolving.value || !props.model) return;
   const contextWindow = parseTokenCount(contextWindowText.value);
@@ -147,7 +166,9 @@ function save(): void {
     uiMessage.warning(t("maximumOutputLengthCannotExceedContextLength"));
     return;
   }
-  emit("save", { contextWindow, maxTokens });
+  const sampler = collectSampler();
+  if (sampler === null) return;
+  emit("save", { contextWindow, maxTokens, sampler });
 }
 </script>
 
@@ -210,6 +231,11 @@ function save(): void {
             />
             <small>{{ t("maximumTokensGeneratedInASingleReply") }}</small>
           </label>
+          <ModelSamplerFields
+            v-if="model.api === 'openai-completions'"
+            ref="samplerFields"
+            :sampler="model.sampler"
+          />
         </div>
         <footer class="dialog-actions">
           <button

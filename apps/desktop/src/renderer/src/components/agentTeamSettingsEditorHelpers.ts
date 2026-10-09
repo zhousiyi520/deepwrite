@@ -190,6 +190,7 @@ export function agentTeamDraftSignature(
           custom && subagent.thinkingLevel === "off"
             ? (subagent.temperature ?? null)
             : null,
+          subagent.sampler ?? null,
           savedSubagentDraw(subagent.draw) ?? null
         ];
       })

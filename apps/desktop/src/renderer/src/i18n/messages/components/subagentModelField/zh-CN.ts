@@ -10,5 +10,7 @@ export default {
   selectTemperature: "选择温度",
   selectATemperature: "请选择温度",
   noModelsAvailableAddOneInModelSettingsFirst:
-    "暂无可用模型，请先在「模型配置」中添加。"
+    "暂无可用模型，请先在「模型配置」中添加。",
+  samplerOverrideNote:
+    "留空的项沿用所选模型的当前采样参数；覆盖的项按此子智能体单独发送，0 和 -1 是有效值。"
 };

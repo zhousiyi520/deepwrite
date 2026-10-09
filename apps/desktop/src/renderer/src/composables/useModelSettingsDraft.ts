@@ -8,7 +8,8 @@ import {
 import type {
   ModelConfigInput,
   ModelSettings,
-  ModelSettingsInput
+  ModelSettingsInput,
+  SamplerSettings
 } from "@deepwrite/contracts";
 import { createId } from "@deepwrite/shared";
 import { useSettingsStore } from "../stores/settingsStore";
@@ -255,6 +256,7 @@ export function useModelSettingsDraft(
   function saveAdvancedConfig(capacity: {
     contextWindow: number;
     maxTokens: number;
+    sampler: SamplerSettings | undefined;
   }): void {
     const target = advancedConfigModel.value;
     if (!target || target.managedBy) return;
@@ -265,7 +267,8 @@ export function useModelSettingsDraft(
     draftModels.value[index] = {
       ...draftModels.value[index]!,
       contextWindow: capacity.contextWindow,
-      maxTokens: capacity.maxTokens
+      maxTokens: capacity.maxTokens,
+      sampler: capacity.sampler
     };
     advancedConfigModel.value = null;
     submitModelSettings();

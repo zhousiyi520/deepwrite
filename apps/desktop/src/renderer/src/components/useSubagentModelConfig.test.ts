@@ -35,10 +35,11 @@ function subagent(
   };
 }
 
-function setup(disabled = false) {
+function setup(disabled = false, preferredModelId?: () => string | null) {
   return useSubagentModelConfig({
     models: () => [opus, sonnet],
-    disabled: () => disabled
+    disabled: () => disabled,
+    ...(preferredModelId ? { preferredModelId } : {})
   });
 }
 
@@ -131,6 +132,51 @@ describe("useSubagentModelConfig", () => {
     config.setThinkingLevel(item, "off");
     config.setTemperature(item, 1);
     expect(item).toEqual(subagent());
+  });
+
+  it("stores and clears sampler overrides without touching other settings", () => {
+    const config = setup();
+    const item = subagent({ modelMode: "custom", modelId: "model-opus" });
+    config.setSampler(item, { dryMultiplier: 0.8 });
+    expect(item.sampler).toEqual({ dryMultiplier: 0.8 });
+    expect(item.modelId).toBe("model-opus");
+    config.setSampler(item, undefined);
+    expect(item).not.toHaveProperty("sampler");
+  });
+
+  it("ignores sampler edits while the form is disabled", () => {
+    const config = setup(true);
+    const item = subagent();
+    config.setSampler(item, { dryMultiplier: 0.8 });
+    expect(item).not.toHaveProperty("sampler");
+  });
+
+  it("resolves the effective sampler from the selected or preferred model", () => {
+    const withSampler = {
+      ...sonnet,
+      sampler: { dryMultiplier: 0.5 }
+    } as unknown as ModelConfig;
+    const config = useSubagentModelConfig({
+      models: () => [opus, withSampler],
+      disabled: () => false,
+      preferredModelId: () => "model-sonnet"
+    });
+    // Custom mode: the selected entry's sampler.
+    expect(
+      config.modelSamplerFor(
+        subagent({ modelMode: "custom", modelId: "model-sonnet" })
+      )
+    ).toEqual({ dryMultiplier: 0.5 });
+    // Inherit mode: the workspace's preferred model.
+    expect(config.modelSamplerFor(subagent())).toEqual({ dryMultiplier: 0.5 });
+    // No preferred model, or a model without sampler settings.
+    const plain = setup();
+    expect(plain.modelSamplerFor(subagent())).toBeUndefined();
+    expect(
+      plain.modelSamplerFor(
+        subagent({ modelMode: "custom", modelId: "model-opus" })
+      )
+    ).toBeUndefined();
   });
 
   it("summarises how the subagent picks its model", () => {

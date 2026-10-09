@@ -3,6 +3,7 @@ import {
   SHORT_AGENT_SUBAGENT_DESCRIPTION_MAX_LENGTH,
   SHORT_AGENT_SUBAGENT_NAME_MAX_LENGTH,
   SHORT_AGENT_SUBAGENT_SYSTEM_PROMPT_MAX_LENGTH,
+  type SamplerSettings,
   type ShortAgentSubagentDefinition,
   type ShortAgentSubagentModelMode,
   type SubagentAgentMode,
@@ -36,6 +37,8 @@ const props = defineProps<{
   modelOptions: readonly PopupSelectOption[];
   thinkingOptions: readonly PopupSelectOption[];
   temperatureOptions: readonly PopupSelectOption[];
+  /** The selected model's effective sampler for the override placeholders. */
+  modelSampler?: SamplerSettings | undefined;
   modelConfig: SubagentModelConfig;
 }>();
 
@@ -44,6 +47,7 @@ const emit = defineEmits<{
   setModelId: [modelId: string];
   setThinkingLevel: [level: string];
   setTemperature: [temperature: number];
+  setSampler: [sampler: SamplerSettings | undefined];
   done: [];
 }>();
 
@@ -152,6 +156,8 @@ const advancedSummary = computed(() => {
           :model-id="subagent.modelId"
           :thinking-level="subagent.thinkingLevel"
           :temperature="subagent.temperature"
+          :sampler="subagent.sampler"
+          :model-sampler="modelSampler"
           :model-options="modelOptions"
           :thinking-options="thinkingOptions"
           :temperature-options="temperatureOptions"
@@ -160,6 +166,7 @@ const advancedSummary = computed(() => {
           @set-model-id="emit('setModelId', $event)"
           @set-thinking-level="emit('setThinkingLevel', $event)"
           @set-temperature="emit('setTemperature', $event)"
+          @set-sampler="emit('setSampler', $event)"
         />
       </div>
     </section>

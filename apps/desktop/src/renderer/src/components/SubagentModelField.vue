@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type {
+  SamplerSettings,
   ShortAgentSubagentModelMode,
   ThinkingLevel
 } from "@deepwrite/contracts/renderer";
@@ -7,6 +8,11 @@ import { computed } from "vue";
 import { createScopedTranslator } from "../i18n";
 import AgentTeamSegmented from "./AgentTeamSegmented.vue";
 import AppIcon from "./AppIcon.vue";
+import ModelSamplerFields from "./ModelSamplerFields.vue";
+import {
+  createSamplerFieldTexts,
+  diffSamplerSettings
+} from "./modelSamplerFields";
 import PopupSelect, { type PopupSelectOption } from "./PopupSelect.vue";
 
 const t = createScopedTranslator("components.subagentModelField");
@@ -17,6 +23,9 @@ const props = defineProps<{
   modelId?: string | undefined;
   thinkingLevel?: ThinkingLevel | undefined;
   temperature?: number | undefined;
+  sampler?: SamplerSettings | undefined;
+  /** The selected model's effective sampler, shown as input placeholders. */
+  modelSampler?: SamplerSettings | undefined;
   modelOptions: readonly PopupSelectOption[];
   thinkingOptions: readonly PopupSelectOption[];
   temperatureOptions: readonly PopupSelectOption[];
@@ -28,6 +37,7 @@ const emit = defineEmits<{
   setModelId: [modelId: string];
   setThinkingLevel: [level: string];
   setTemperature: [temperature: number];
+  setSampler: [sampler: SamplerSettings | undefined];
 }>();
 
 const custom = computed(() => props.modelMode === "custom");
@@ -35,6 +45,14 @@ const modeOptions = computed(() => [
   { value: "inherit" as const, label: t("usePrimaryAgentModel") },
   { value: "custom" as const, label: t("configureModelSeparately") }
 ]);
+const samplerPlaceholders = computed(() =>
+  createSamplerFieldTexts(props.modelSampler)
+);
+
+// Only keys that differ from the selected model are stored as overrides.
+function onSamplerUpdate(value: SamplerSettings | undefined): void {
+  emit("setSampler", diffSamplerSettings(props.modelSampler, value));
+}
 </script>
 
 <template>
@@ -96,6 +114,14 @@ const modeOptions = computed(() => [
     <p v-if="custom && modelOptions.length === 0" class="model-empty-hint">
       {{ t("noModelsAvailableAddOneInModelSettingsFirst") }}
     </p>
+    <div class="model-sampler">
+      <ModelSamplerFields
+        :sampler="sampler"
+        :placeholders="samplerPlaceholders"
+        @update:sampler="onSamplerUpdate"
+      />
+      <p class="model-sampler-note">{{ t("samplerOverrideNote") }}</p>
+    </div>
   </div>
 </template>
 
@@ -126,5 +152,19 @@ const modeOptions = computed(() => [
   color: var(--text-tertiary);
   font-size: 0.785714rem;
   line-height: 1.45;
+}
+.model-sampler {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid var(--theme-line-soft);
+}
+.model-sampler-note {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-size: 0.714286rem;
+  line-height: 1.5;
 }
 </style>

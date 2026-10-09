@@ -2,15 +2,27 @@ import type { StreamFn, ThinkingLevel } from "@earendil-works/pi-agent-core";
 import type { Api, Model } from "@earendil-works/pi-ai";
 import type {
   AgentRuntimeRef,
-  ShortAgentSubagentDefinition
+  AgentProviderRuntimeConfig,
+  ShortAgentSubagentDefinition,
+  ThinkingLevel as ConfiguredThinkingLevel
 } from "@deepwrite/contracts";
+import {
+  hasSamplerSettings,
+  resolveEffectiveSamplerSettings
+} from "@deepwrite/contracts";
+import {
+  buildProviderRuntime,
+  resolveRunSamplingValues,
+  toPiThinkingLevel
+} from "./provider-runtime";
+import type { PortableToolSchemaProfile } from "./portable-tool-schema";
 import { runtimeFromConfig, runtimeFromModel } from "./subagent-helpers";
 import type { BuildSpawnSubagentToolInput } from "./subagent-types";
 
 /** Model choice of a member or a draw evaluator; `inherit` is the parent's. */
 export type SubagentModelSettings = Pick<
   ShortAgentSubagentDefinition,
-  "modelMode" | "modelId" | "thinkingLevel" | "temperature"
+  "modelMode" | "modelId" | "thinkingLevel" | "temperature" | "sampler"
 >;
 
 export interface ResolvedSubagentModel {
@@ -23,6 +35,35 @@ function customModelId(settings: SubagentModelSettings): string | undefined {
   return settings.modelMode === "custom"
     ? settings.modelId?.trim() || undefined
     : undefined;
+}
+
+/**
+ * The parent-run sampling rebuild spec handed to spawn inputs: the parent's
+ * own provider config plus its effective thinking level and temperature.
+ * `undefined` on faux paths, where inherit-mode children keep the parent
+ * runtime untouched.
+ */
+export function buildParentSamplerRuntimeSpec(
+  target: {
+    runtimeConfig?: AgentProviderRuntimeConfig;
+    thinkingLevel?: ConfiguredThinkingLevel;
+    temperature?: number;
+  },
+  portableToolSchemaProfile: PortableToolSchemaProfile
+): BuildSpawnSubagentToolInput["parentSamplerRuntime"] {
+  if (!target.runtimeConfig) return undefined;
+  const { configuredThinkingLevel, effectiveTemperature } =
+    resolveRunSamplingValues(
+      target.runtimeConfig,
+      target.thinkingLevel,
+      target.temperature
+    );
+  return {
+    config: target.runtimeConfig,
+    configuredThinkingLevel,
+    effectiveTemperature,
+    portableToolSchemaProfile
+  };
 }
 
 export function subagentModelRuntime(
@@ -43,6 +84,27 @@ export function resolveSubagentModel(
   owner: string
 ): ResolvedSubagentModel {
   if (settings.modelMode !== "custom") {
+    const rebuild = input.parentSamplerRuntime;
+    if (hasSamplerSettings(settings.sampler) && rebuild) {
+      // Inherit-mode override: rebuild the parent runtime from its own config
+      // with the merged sampler. thinkingLevel and temperature are the
+      // parent-run effective values, never re-resolved from config defaults.
+      const merged = resolveEffectiveSamplerSettings(
+        rebuild.config.sampler,
+        settings.sampler
+      );
+      const runtime = buildProviderRuntime(
+        { ...rebuild.config, sampler: merged },
+        rebuild.effectiveTemperature,
+        rebuild.configuredThinkingLevel,
+        { portableToolSchemaProfile: rebuild.portableToolSchemaProfile }
+      );
+      return {
+        model: runtime.model,
+        streamFn: runtime.streamFn,
+        thinkingLevel: toPiThinkingLevel(rebuild.configuredThinkingLevel)
+      };
+    }
     return {
       model: input.model,
       streamFn: input.streamFn,
@@ -60,7 +122,19 @@ export function resolveSubagentModel(
   if (!input.buildCustomModelRuntime) {
     throw new Error("当前运行时不支持子智能体单独配置模型。");
   }
-  return input.buildCustomModelRuntime(runtimeConfig, {
+  // Custom-mode override: the child's own model config is the base; the
+  // subagent sampler replaces keys one by one. Without an override the exact
+  // original config object is forwarded, keeping the no-sampler path intact.
+  const derivedConfig = hasSamplerSettings(settings.sampler)
+    ? {
+        ...runtimeConfig,
+        sampler: resolveEffectiveSamplerSettings(
+          runtimeConfig.sampler,
+          settings.sampler
+        )
+      }
+    : runtimeConfig;
+  return input.buildCustomModelRuntime(derivedConfig, {
     ...(settings.thinkingLevel !== undefined
       ? { thinkingLevel: settings.thinkingLevel }
       : {}),

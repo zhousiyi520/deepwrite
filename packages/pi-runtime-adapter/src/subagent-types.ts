@@ -18,9 +18,11 @@ import type {
   ShortAgentSubagentDefinition,
   SubagentAgentMode,
   SubagentDrawRef,
-  SubagentDrawUpdatedPayload
+  SubagentDrawUpdatedPayload,
+  ThinkingLevel
 } from "@deepwrite/contracts";
 import type { AgentUserInputRequester } from "./runtime-types";
+import type { PortableToolSchemaProfile } from "./portable-tool-schema";
 import type {
   AgentTurnAttempt,
   AgentTurnRetrySchedule,
@@ -188,6 +190,20 @@ export interface BuildSpawnSubagentToolInput {
   model: Model<Api>;
   thinkingLevel: PiThinkingLevel;
   streamFn: StreamFn;
+  /**
+   * Parent-run sampling rebuild spec for inherit-mode children with sampler
+   * overrides: the parent's own provider config plus the thinking level and
+   * temperature exactly as the parent runtime consumed them, so a rebuilt
+   * child runtime cannot fall back to config defaults. Absent on faux paths
+   * (no parent runtime config), where inherit children keep the parent
+   * runtime untouched.
+   */
+  parentSamplerRuntime?: {
+    config: AgentProviderRuntimeConfig;
+    configuredThinkingLevel: ThinkingLevel;
+    effectiveTemperature: number | undefined;
+    portableToolSchemaProfile: PortableToolSchemaProfile;
+  };
   definitions: readonly RuntimeSubagentDefinition[];
   getParentMessages?: () => readonly AgentMessage[];
   /** Runtime-owned requirements appended after the editable child role prompt. */

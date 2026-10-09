@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TemperatureSchema, ThinkingLevelSchema } from "./models";
+import { SamplerSettingsSchema } from "./sampling";
 import {
   SHORT_WORKSPACE_AGENT_IDS,
   ShortWorkspaceAgentIdSchema,
@@ -78,6 +79,8 @@ export const ShortAgentSubagentDefinitionSchema = z
       .optional(),
     thinkingLevel: ThinkingLevelSchema.optional(),
     temperature: TemperatureSchema.optional(),
+    /** Optional sampler overrides; configurable under both model modes. */
+    sampler: SamplerSettingsSchema.optional(),
     /** Older settings and packages omit it: draw mode off. */
     draw: SubagentDrawSettingsSchema.optional()
   })

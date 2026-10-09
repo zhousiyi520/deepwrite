@@ -132,7 +132,8 @@ const activeTeam = computed(() =>
 
 const subagentModelConfig = useSubagentModelConfig({
   models: () => props.models,
-  disabled: () => formDisabled.value
+  disabled: () => formDisabled.value,
+  preferredModelId: () => props.preferredModelId
 });
 const {
   modelOptions,
@@ -142,6 +143,8 @@ const {
   setModelId: setSubagentModelId,
   setThinkingLevel: setSubagentThinkingLevel,
   setTemperature: setSubagentTemperature,
+  setSampler: setSubagentSampler,
+  modelSamplerFor,
   subagentModelSummary
 } = subagentModelConfig;
 
@@ -385,7 +388,8 @@ function saveSettings(): void {
                 ? { temperature: subagent.temperature }
                 : {})
             }
-          : {})
+          : {}),
+        ...(subagent.sampler !== undefined ? { sampler: subagent.sampler } : {})
       }))
     };
   });
@@ -437,6 +441,8 @@ defineExpose({
   setSubagentModelId,
   setSubagentThinkingLevel,
   setSubagentTemperature,
+  setSubagentSampler,
+  modelSamplerFor,
   subagentModelSummary,
   editSubagent,
   finishEditing,

@@ -128,6 +128,7 @@ import materialMetadataEditor from "./materialMetadataEditor/en-US";
 import modelAdvancedConfigDialog from "./modelAdvancedConfigDialog/en-US";
 import modelEditorPanel from "./modelEditorPanel/en-US";
 import modelProviderPresets from "./modelProviderPresets/en-US";
+import modelSamplerFields from "./modelSamplerFields/en-US";
 import modelSettingsDraft from "./modelSettingsDraft/en-US";
 import modelSettingsFeature from "./modelSettingsFeature/en-US";
 import modelUsageModuleMeta from "./modelUsageModuleMeta/en-US";
@@ -314,6 +315,7 @@ export default {
   modelAdvancedConfigDialog,
   modelEditorPanel,
   modelProviderPresets,
+  modelSamplerFields,
   modelSettingsDraft,
   modelSettingsFeature,
   modelUsageModuleMeta,

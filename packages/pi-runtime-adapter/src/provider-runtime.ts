@@ -22,6 +22,7 @@ import {
   DEFAULT_CUSTOM_MODEL_CONTEXT_WINDOW,
   DEFAULT_CUSTOM_MODEL_MAX_TOKENS,
   type AgentProviderRuntimeConfig,
+  hasSamplerSettings,
   type ThinkingLevel as ConfiguredThinkingLevel
 } from "@deepwrite/contracts";
 import {
@@ -32,6 +33,7 @@ import {
 import { findLongestModelIdBoundaryMatch } from "./model-id-matching";
 import { enforceProviderToolSchemaCompatibility } from "./provider-tool-schema-compat";
 import { findDeepWriteRuntimeModel } from "./runtime-model-catalog";
+import { toSamplingParams } from "./sampling-params";
 import {
   appendDeepSeekWebSearchTool,
   assertDeepSeekWebSearchCompatible
@@ -132,6 +134,31 @@ export function toPiThinkingLevel(
   return "xhigh";
 }
 
+/**
+ * The exact thinking level and temperature a run's provider runtime is built
+ * with. Shared by `resolveRunModel` (the parent runtime) and inherit-mode
+ * subagent rebuilds, so a derived child runtime cannot fall back to config
+ * defaults and drift from its parent's effective settings.
+ */
+export function resolveRunSamplingValues(
+  config: AgentProviderRuntimeConfig,
+  runThinkingLevel: ConfiguredThinkingLevel | undefined,
+  runTemperature: number | undefined
+): {
+  configuredThinkingLevel: ConfiguredThinkingLevel;
+  effectiveTemperature: number | undefined;
+} {
+  const configuredThinkingLevel =
+    runThinkingLevel ?? config.defaultThinkingLevel;
+  return {
+    configuredThinkingLevel,
+    effectiveTemperature:
+      configuredThinkingLevel === "off"
+        ? (runTemperature ?? config.temperatureOptions[1])
+        : undefined
+  };
+}
+
 export function buildWorkspaceProviderRuntimes(
   config: AgentProviderRuntimeConfig,
   temperature?: number,
@@ -211,6 +238,15 @@ export function buildProviderRuntime(
   }
   const model = {
     ...(builtin?.api === config.api ? builtin : {}),
+    // Sampler overrides (DRY / XTC / min-p) ride only on openai-completions
+    // requests, whose llama.cpp-style body accepts the snake_case keys. Other
+    // APIs keep provider-native sampling semantics. Placed after the catalog
+    // spread so enabled settings also override any catalog-borne
+    // samplingParams; the gate adds no key when no sampler is configured.
+    ...(config.api === "openai-completions" &&
+    hasSamplerSettings(config.sampler)
+      ? { samplingParams: toSamplingParams(config.sampler) }
+      : {}),
     id: requestModelId,
     name: config.label,
     api: config.api,

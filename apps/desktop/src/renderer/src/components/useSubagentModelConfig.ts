@@ -1,6 +1,7 @@
 import {
   BUILT_IN_REASONING_LEVELS,
   type ModelConfig,
+  type SamplerSettings,
   type ShortAgentSubagentDefinition,
   type ShortAgentSubagentModelMode,
   type ThinkingLevel
@@ -18,7 +19,7 @@ const t = createScopedTranslator("components.agentTeamSettingsEditorHelpers");
 /** A member's own model choice, or the evaluator model of its draws. */
 export type SubagentModelTarget = Pick<
   ShortAgentSubagentDefinition,
-  "modelMode" | "modelId" | "thinkingLevel" | "temperature"
+  "modelMode" | "modelId" | "thinkingLevel" | "temperature" | "sampler"
 >;
 
 /**
@@ -28,6 +29,8 @@ export type SubagentModelTarget = Pick<
 export function useSubagentModelConfig(source: {
   models: () => readonly ModelConfig[];
   disabled: () => boolean;
+  /** The workspace's preferred model; the inherit-mode sampler base. */
+  preferredModelId?: () => string | null | undefined;
 }) {
   const modelById = computed(
     () => new Map(source.models().map((model) => [model.id, model]))
@@ -126,6 +129,36 @@ export function useSubagentModelConfig(source: {
     subagent.temperature = temperature;
   }
 
+  function setSampler(
+    subagent: SubagentModelTarget,
+    sampler: SamplerSettings | undefined
+  ): void {
+    if (source.disabled()) return;
+    if (sampler === undefined) {
+      delete subagent.sampler;
+      return;
+    }
+    subagent.sampler = sampler;
+  }
+
+  /**
+   * The sampler the subagent's model choice resolves to today: the selected
+   * entry under a custom model, otherwise the workspace's preferred model.
+   * Drives the override placeholders and the stored diff keys.
+   */
+  function modelSamplerFor(
+    subagent: SubagentModelTarget
+  ): SamplerSettings | undefined {
+    const preferredModelId = source.preferredModelId?.();
+    const model =
+      subagent.modelMode === "custom"
+        ? modelOf(subagent)
+        : preferredModelId
+          ? modelById.value.get(preferredModelId)
+          : undefined;
+    return model?.sampler;
+  }
+
   function subagentModelSummary(subagent: SubagentModelTarget): string {
     if (subagent.modelMode !== "custom") return t("usePrimaryAgentModel");
     if (!subagent.modelId) return t("separateConfigurationNoModelSelected");
@@ -152,6 +185,8 @@ export function useSubagentModelConfig(source: {
     setModelId,
     setThinkingLevel,
     setTemperature,
+    setSampler,
+    modelSamplerFor,
     subagentModelSummary
   };
 }
